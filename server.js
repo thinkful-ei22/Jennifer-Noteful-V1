@@ -13,7 +13,17 @@ const app = express();
 app.use(express.static('public'));
 
 app.get('/api/notes', (req, res) => {
-  res.json(data);
+  const query = req.query;
+  const searchTerm = query.searchTerm;
+  if (!searchTerm){
+    return res.json(data);
+  }
+  const result = data.filter(item=>{
+    if (item.title.includes(searchTerm)||item.content.includes(searchTerm)){
+      return item;
+    }
+  });
+  res.json(result);
 });
 
 app.get('/api/notes/:id', (req, res)=>{
@@ -21,6 +31,7 @@ app.get('/api/notes/:id', (req, res)=>{
   const result = data.find(item=>item.id===Number(id));
   res.json(result);
 });
+
 
 app.listen(8080, function () {
   console.info(`Server listening on ${this.address().port}`);
