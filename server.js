@@ -19,21 +19,11 @@ const {requestLogger} = require('./middleware/logger');
 
 app.use(express.static('public'));
 
+app.use(express.json());
+
 app.use(requestLogger);
 
-// app.get('/api/notes', (req, res) => {
-//   const query = req.query;
-//   const searchTerm = query.searchTerm;
-//   if (!searchTerm){
-//     return res.json(data);
-//   }
-//   const result = data.filter(item=>{
-//     if (item.title.includes(searchTerm)||item.content.includes(searchTerm)){
-//       return item;
-//     }
-//   });
-//   res.json(result);
-// });
+
 app.get('/api/notes', (req, res, next) => {
   const { searchTerm } = req.query;
 
@@ -55,6 +45,29 @@ app.get('/api/notes/:id', (req, res, next)=>{
   });
 });
 
+app.put('/api/notes/:id', (req, res, next) => {
+  const id = req.params.id;
+
+  /***** Never trust users - validate input *****/
+  const updateObj = {};
+  const updateFields = ['title', 'content'];
+  updateFields.forEach(field => {
+    if (field in req.body) {
+      updateObj[field] = req.body[field];
+    }
+  });
+
+  notes.update(id, updateObj, (err, item) => {
+    if (err) {
+      return next(err);
+    }
+    if (item) {
+      res.json(item);
+    } else {
+      next();
+    }
+  });
+});
 
 app.use(function (req, res, next) {
   var err = new Error('Not Found');
