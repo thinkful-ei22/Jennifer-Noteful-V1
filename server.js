@@ -21,18 +21,28 @@ app.use(express.static('public'));
 
 app.use(requestLogger);
 
-app.get('/api/notes', (req, res) => {
-  const query = req.query;
-  const searchTerm = query.searchTerm;
-  if (!searchTerm){
-    return res.json(data);
-  }
-  const result = data.filter(item=>{
-    if (item.title.includes(searchTerm)||item.content.includes(searchTerm)){
-      return item;
+// app.get('/api/notes', (req, res) => {
+//   const query = req.query;
+//   const searchTerm = query.searchTerm;
+//   if (!searchTerm){
+//     return res.json(data);
+//   }
+//   const result = data.filter(item=>{
+//     if (item.title.includes(searchTerm)||item.content.includes(searchTerm)){
+//       return item;
+//     }
+//   });
+//   res.json(result);
+// });
+app.get('/api/notes', (req, res, next) => {
+  const { searchTerm } = req.query;
+
+  notes.filter(searchTerm, (err, list) => {
+    if (err) {
+      return next(err); // goes to error handler
     }
+    res.json(list); // responds with filtered array
   });
-  res.json(result);
 });
 
 app.get('/api/notes/:id', (req, res)=>{
