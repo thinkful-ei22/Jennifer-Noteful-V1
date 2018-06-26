@@ -39,9 +39,6 @@ app.get('/api/notes/:id', (req, res)=>{
   res.json(result);
 });
 
-app.get('/boom', (req, res, next) => {
-  throw new Error('Boom!!');
-});
 
 app.use(function (req, res, next) {
   var err = new Error('Not Found');
