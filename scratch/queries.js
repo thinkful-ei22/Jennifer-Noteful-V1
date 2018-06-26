@@ -58,13 +58,13 @@ notes.create(newObject, (err, item) => {
 });
 
 notes.delete(1010, (err, item) => {
-    if (err) {
-      console.error(err);
-    }
-    if (item) {
-      console.log(item);
-    } else {
-      console.log('not found');
-    }
-  });
+  if (err) {
+    console.error(err);
+  }
+  if (item) {
+    console.log(item);
+  } else {
+    console.log('not found');
+  }
+});
 
