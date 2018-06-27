@@ -15,13 +15,13 @@ const { PORT } = require('./config');
 
 const app = express();
 
-const {requestLogger} = require('./middleware/logger');
+const morgan = require('morgan');
 
 app.use(express.static('public'));
 
 app.use(express.json());
 
-app.use(requestLogger);
+app.use(morgan('dev'));
 
 
 app.get('/api/notes', (req, res, next) => {
