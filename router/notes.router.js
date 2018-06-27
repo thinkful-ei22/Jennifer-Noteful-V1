@@ -16,6 +16,11 @@ router.post('/',(req, res, next)=>{
     err.status = 400;
     return next(err);
   }
+  if (!newItem.content) {
+    const err = new Error('Missing content in request body');
+    err.status = 400;
+    return next(err);
+  }
   notes.create(newItem, (err, item) => {
     if(err) {
       return next(err);
@@ -27,10 +32,28 @@ router.post('/',(req, res, next)=>{
     }
   });
 });
+
+router.delete('/:id', (req, res, next)=>{
+  const id = req.params.id;
+  notes.delete(id, (err, len)=>{
+    if (err){
+      console.log('err', err);
+      return next(err);
+    }
+    if(len){
+      console.log(`Deleted note ${id}`);
+      res.status(204).end();
+    }
+    else{
+      next('Item to be deleted could not be found');
+    }
+  });
+});
+
 router.get('/', (req, res, next) => {
   const { searchTerm } = req.query;
   notes.filter(searchTerm, (err, list) => {
-    if (err) {
+    if (!list) {
       return next(err); // goes to error handler
     }
     res.json(list); // responds with filtered array
@@ -40,7 +63,7 @@ router.get('/', (req, res, next) => {
 router.get('/:id', (req, res, next)=>{
   const id = req.params.id;
   notes.find(id,(err,item)=>{
-    if(err){
+    if(!item){
       return next(err);
     }
     res.json(item);
@@ -57,7 +80,6 @@ router.put('/:id', (req, res, next) => {
       updateObj[field] = req.body[field];
     }
   });
-  
   notes.update(id, updateObj, (err, item) => {
     if (err) {
       return next(err);
