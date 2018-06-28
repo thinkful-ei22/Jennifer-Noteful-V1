@@ -21,55 +21,64 @@ router.post('/',(req, res, next)=>{
     err.status = 400;
     return next(err);
   }
-  notes.create(newItem, (err, item) => {
-    if(err) {
-      return next(err);
-    }
-    if (item) {
-      res.location(`http://${req.headers.host}/notes/${item.id}`).status(201).json(item);
-    }else{
-      next();
-    }
-  });
+  notes.create(newItem)
+    .then(item => {
+      if (item){
+        res.location(`http://${req.headers.host}/notes/${item.id}`).status(201).json(item);
+      }else{
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
 
 router.delete('/:id', (req, res, next)=>{
   const id = req.params.id;
-  notes.delete(id, (err, len)=>{
-    if (err){
-      console.log('err', err);
-      return next(err);
-    }
-    if(len){
-      console.log(`Deleted note ${id}`);
-      res.status(204).end();
-    }
-    else{
-      next('Item to be deleted could not be found');
-    }
-  });
+  notes.delete(id)
+    .then(len =>{
+      if(len){
+        console.log(`Deleted note ${id}`);
+        res.status(204).end();
+      }
+      else{
+        next('Item to be deleted could not be found');
+      }
+    })
+    .catch(err => {
+      next(err);
+    });  
 });
 
 router.get('/', (req, res, next) => {
   const { searchTerm } = req.query;
-  notes.filter(searchTerm, (err, list) => {
-    if (!list) {
-      return next(err); // goes to error handler
-    }
-    res.json(list); // responds with filtered array
-  });
+  notes.filter(searchTerm)
+    .then(list => {
+      if(list){
+        res.json(list);
+      }
+    })
+    .catch(err =>{
+      next(err);
+    });
 });
-  
+
 router.get('/:id', (req, res, next)=>{
   const id = req.params.id;
-  notes.find(id,(err,item)=>{
-    if(!item){
-      return next(err);
-    }
-    res.json(item);
-  });
+  notes.find(id)
+    .then(item => {
+      if(item){
+        res.json(item);
+      }else{
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
-  
+ 
 router.put('/:id', (req, res, next) => {
   const id = req.params.id;  
   /**** Never trust users - validate input *****/
@@ -80,16 +89,18 @@ router.put('/:id', (req, res, next) => {
       updateObj[field] = req.body[field];
     }
   });
-  notes.update(id, updateObj, (err, item) => {
-    if (err) {
-      return next(err);
-    }
-    if (item) {
-      res.json(item);
-    } else {
-      next();
-    }
-  });
+  notes.update(id, updateObj)
+    .then(item => {
+      if(item){
+        res.json(item);
+      }else{
+        next();
+      }
+    })
+    .catch(err => {
+      next(err);
+    });
 });
+
 
 module.exports=router;
