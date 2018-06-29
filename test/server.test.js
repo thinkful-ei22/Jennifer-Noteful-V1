@@ -7,18 +7,6 @@ const expect = chai.expect;
 
 chai.use(chaiHttp);
 
-describe('Reality check', function () {
-
-  it('true should be true', function () {
-    expect(true).to.be.true;
-  });
-
-  it('2 + 2 should equal 4', function () {
-    expect(2 + 2).to.equal(4);
-  });
-
-});
-
 describe('Express static', function(){
   it('GET request "/" shouldreturn the index page', function(){
     return chai.request(app)
@@ -144,10 +132,75 @@ describe('POSt new note', function(){
   });
 });
 
-// describe('PUT to updata specific note', function(){
+describe('PUT to update a specific note', function(){
+  it('should update and return a note object when given valid data', function(){
+    const updatedNote = {title: 'Sample Title', content: 'This is an article about cats'};
+    return chai.request(app)
+      .get('/api/notes')
+      .then(function(res){
+        updatedNote.id = res.body[0].id;
+        return chai.request(app)
+          .put(`/api/notes/${updatedNote.id}`)
+          .send(updatedNote)
+          .then(function(res){
+            expect(res).to.be.json;
+            expect(res).to.have.status(200);
+            expect(res.body).to.be.a('object');
+            expect(res.body).to.deep.equal(updatedNote);
+          });
+      });
+  });
+  it('should respond with a 404 for an invalid id (/api/notes/DOESNOTEXIST)', function(){
+    return chai.request(app)
+      .get('/api/notes/DOESNOTEXIST')
+      .then(function(res){
+        expect(res).to.have.status(404);
+      });
+  });
+  it('should return an object with a message property "Missing title in request body" when missing "title" field', function(){
+    const updatedNote = {title: null, content:'This will not work'};
+    return chai.request(app)
+      .get('/api/notes')
+      .then(function(res){
+        updatedNote.id = res.body[0].id;
+        return chai.request(app)
+          .put(`/api/notes/${updatedNote.id}`)
+          .send(updatedNote)
+          .then(function(res){
+            expect(res).to.have.status(400);
+            expect(res).to.be.json;
+            expect(res.body).to.be.a('object');
+            expect(res.body).to.include.keys('message');
+            expect(res.body.message).to.equal('Missing title in request body');
+          });
+      });
+  });
+  it('should return an object with a message property "Missing content in request body" when missing "content" field', function(){
+    const updatedNote = {title: 'Broken', content: null};
+    return chai.request(app)
+      .get('/api/notes')
+      .then(function(res){
+        updatedNote.id = res.body[0].id;
+        return chai.request(app)
+          .put(`/api/notes/${updatedNote.id}`)
+          .send(updatedNote)
+          .then(function(res){
+            expect(res).to.have.status(400);
+            expect(res).to.be.json;
+            expect(res.body).to.be.a('object');
+            expect(res.body).to.include.keys('message');
+            expect(res.body.message).to.equal('Missing content in request body');
+          });
+      });
+  });
+});
 
-// });
-
-// describe('DELETE a specific note', function(){
-
-// });
+describe('DELETE a specific note', function(){
+  it('should delete an item by id', function(){
+    return chai.request(app)
+      .delete('/api/notes/1000')
+      .then(function(res){
+        expect(res).to.have.status(204);
+      });
+  });
+});

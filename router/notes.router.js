@@ -2,8 +2,6 @@
 
 const express = require('express');
 const router = express.Router();
-// const bodyParser = require('body-parser');
-// const jsonParser = bodyParser.json();
 const data = require('../db/notes');
 const simDB = require('../db/simDB');
 const notes = simDB.initialize(data);
@@ -89,6 +87,16 @@ router.put('/:id', (req, res, next) => {
       updateObj[field] = req.body[field];
     }
   });
+  if (!updateObj.title) {
+    const err = new Error('Missing title in request body');
+    err.status = 400;
+    return next(err);
+  }
+  else if (!updateObj.content) {
+    const err = new Error('Missing content in request body');
+    err.status = 400;
+    return next(err);
+  }
   notes.update(id, updateObj)
     .then(item => {
       if(item){
